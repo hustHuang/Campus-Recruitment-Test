@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style type="text/css">
+            .tabs{
+                list-style: none;
+                margin-left: 0px;
+                padding-left: 0px;
+            }
+            .tabs li{
+                width: 55px;
+                height: 25px;
+                float: left;
+                margin-right: 10px;
+                margin-bottom: -1px;
+                display: block;
+                border: 1px solid #CCC;
+                border-bottom: 0px;
+                text-align: center;
+                line-height: 25px;
+                color: #000;
+                background-color: #DDD;
+                cursor: pointer;
+            }
+            li.active {
+                background-color: #FFF;  
+            }
+            li.over {
+                background-color: #EEE; 
+            }
+            .tab-content {
+                width: 300px;
+                height: 100px;
+                border: 1px solid #CCC;
+                clear: both;
+                display: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div>
+            <ul class="tabs">
+                <li class="active">
+                     tab1
+                </li>
+                <li>
+                    tab2
+                </li>
+                <li>
+                   tab3
+                </li>
+            </ul>
+            <div id="tab-content-1" class="tab-content">
+                <div>
+                    ÄÚÈÝ1
+                </div>
+            </div>
+            <div id="tab-content-2" class="tab-content">
+                <div>
+                    ÄÚÈÝ2
+                </div>
+            </div>
+            <div id="tab-content-3" class="tab-content">
+                <div>
+                    ÄÚÈÝ3
+                </div>
+            </div>	
+        </div>
+        <script type="text/javascript" src="jquery.min.js"></script>
+        <script>
+               $(function(){
+
+                var hash = window.location.hash.substring(1);
+                
+                setTab(hash || 0);
+                
+                $(".tabs li").click(function(){
+                       var index = $(this).index();
+                       setTab(index);
+                 });
+
+                 $(".tabs li").mouseover(function(){
+                       $(this).addClass("over");
+                 });
+
+                 $(".tabs li").mouseout(function(){
+                       $(this).removeClass("over");
+                 });
+
+                 function setTab(index){
+                        
+                       $(".tabs li").removeClass("active");
+                       $(".tabs li").eq(index).addClass("active");
+                       $(".tab-content").hide();
+                       $(".tab-content").eq(index).show();
+
+                       window.location.hash = "#"+index;
+                 }
+
+               });        
+        </script>
+    </body>
+</html>
