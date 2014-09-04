@@ -1,0 +1,117 @@
+<html>
+<head></head>
+<style>
+#nav{
+ width:500px;
+ height:45px;
+ position:relative;
+ background-color:#456;
+}
+#tips {
+ width:180px;
+ height:30px;
+ position:absolute;
+ bottom:-30px;
+ right:0px;
+ background-color:#F12;
+ 
+}
+</style>
+<body>
+
+<div id="nav">
+<div id="tips"> hello ooeeoo <a id="ik" href="#">我知道了</a></div>
+
+</div>
+<script type="text/javascript">
+/*
+window.onload = function(){
+	if((/know=1/.exec(document.cookie) != null) || (/visit=1/.exec(document.cookie) != null)){
+		document.getElementById("tips").style.display = "none";
+	}
+	if(/know=/.exec(document.cookie) == null){
+        var exDate = new Date();
+        exDate.setDate(exDate.getDate() + 365);
+        document.cookie = "know=0; expires=" + exDate.toGMTString();
+    }
+    if(/know=0/.exec(document.cookie) != null && /visit=/.exec(document.cookie) == null){
+        var exDate = new Date();
+        exDate.setDate(exDate.getDate() + 1);
+        exDate.setHours(0, 0, 0, 0);
+        document.cookie = "visit=1; expires=" + exDate.toGMTString();
+		
+    }
+	document.getElementById("ik").onclick = function(){
+		var exDate = new Date();
+        exDate.setDate(exDate.getDate() + 365);
+        document.cookie = "know=1; expires=" + exDate.toGMTString();
+		document.getElementById("tips").style.display = "none";
+	}
+};
+
+
+*/
+window.onload = function (){
+
+    if(getCookie("initial") !== 0 && getCookie("hide") !== 0 ){
+        document.getElementById("tips").style.display = "block";
+        addCookie("initial",0,24);
+        console.log(getCookie("initial"));
+    }
+
+    document.getElementById("ik").onclick = function(){
+        addCookie("hide",0,24*365);
+        console.log(getCookie("hide"));
+        document.getElementById("tips").style.display = "none";
+    }
+
+}
+
+  
+ 
+function delCookie(name)//删除cookie
+ 
+{
+   document.cookie = name+"=;expires="+(new Date(0)).toGMTString();
+ 
+}
+ 
+  
+ 
+function getCookie(objName){//获取指定名称的cookie的值
+
+    var arrStr = document.cookie.split("; ");
+
+    for(var i = 0;i < arrStr.length;i ++){
+ 
+        var temp = arrStr[i].split("=");
+ 
+        if(temp[0] == objName) {
+            return unescape(temp[1]);
+        }
+    }
+    return "";
+}
+ 
+function addCookie(objName,objValue,objHours){      //添加cookie
+ 
+    var str = objName + "=" + escape(objValue);
+ 
+    if(objHours > 0){      //为时不设定过期时间，浏览器关闭时cookie自动消失
+ 
+        var date = new Date();
+ 
+        var ms = objHours*3600*1000;
+ 
+        date.setTime(date.getTime() + ms);
+ 
+        str += "; expires=" + date.toGMTString();
+   }
+ 
+   document.cookie = str;
+}
+ 
+
+</script>
+</body>
+</html>
