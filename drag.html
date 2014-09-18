@@ -1,0 +1,89 @@
+<doctype html>
+<html>
+<head>
+ <meta charset="utf-8"/>
+ <title>实现div可拖拽</title>	
+</head>
+<style>
+	
+	body {
+		position: absolute;
+	}
+
+	#box {
+		width: 150px;
+		height: 150px;
+		background-color: #c8F;
+		position: absolute;
+		left: 0;
+		top: 0;
+		cursor: default;
+	}
+	
+</style>
+<body>
+<div id="box" >
+	<h3>来拖动我呀！</h3>
+</div>
+
+<script type="text/javascript">
+
+/*--实现div可拖拽--*/
+function dragElem(id){
+	var elem = document.getElementById(id);
+	var _isMouseDown = false, preMousePos, prePos;
+
+	elem.onmousedown = function (e){
+			_isMouseDown = true,
+		 	eve = e || window.event,
+			preMousePos = {
+				left:eve.pageX,
+				top:eve.pageY
+			},
+			prePos = {
+				left:parseInt(this.style.left || 0),
+				top:parseInt(this.style.top || 0)
+			};
+			console.log(prePos);
+			if(elem.addEventListener){
+				elem.addEventListener("mousemove",mousemoveHandler,false);
+			}else if(elem.attachEvent){
+				elem.attachEvent("onmousemove",mousemoveHandler);
+			}
+	};
+
+	var mousemoveHandler = function (e){
+		if(_isMouseDown){
+			var eve = e || window.event;
+			var mousePos = {
+				left:eve.pageX,
+				top:eve.pageY
+			};
+			console.log(mousePos);
+			elem.style.left = prePos.left + (mousePos.left - preMousePos.left) + "px";
+			elem.style.top = prePos.top + (mousePos.top - preMousePos.top) + "px";
+		}
+
+	};
+
+	elem.onmouseup = function (e){
+		_isMouseDown = false;
+		prePos = null;
+		preMousePos = null;
+		if(elem.removeEventListener){
+			elem.removeEventListener("mousemove",mousemoveHandler,false);
+		}else if(elem.detachEvent){
+			elem.detachEvent("onmousemove",mousemoveHandler);
+		}
+	};
+
+}
+
+document.body.onload = function (){
+	dragElem("box");
+};
+
+
+</script>
+</body>
+</html>
