@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>模拟 placeHolder 控件</title>
+</head>
+<style>
+	#holder{
+		width: 200px;
+		height: 75px;
+		margin: 50px auto;
+		border: 1px solid #ccc;
+		text-align: center;
+	}
+
+	#holder input {
+		width: 98%;
+		height: 24px;
+		margin:0;
+		padding:0;
+	}
+
+	#alert{
+		color: red;
+		font-size: 12px;
+		font-family: italic;
+	}
+</style>
+<body>
+
+   <div id="holder">
+   	   <input id="place" type="text" value="" />
+   	   <span id="alert"></span>
+   </div>
+
+<script type="text/javascript">
+   	var _tips = "please input your info";
+   	var pl = document.getElementById("place");
+   	var al = document.getElementById("alert");
+   	
+   	initialTip(pl,_tips);
+
+   	//聚焦
+   	pl.onfocus = function (){
+   		clearTip(pl,_tips);
+   	}
+   	//失去焦点
+    pl.onblur = function (){
+    	initialTip(pl,_tips);
+    }
+    //检测输入，只能输入字母 或者数字
+    pl.onchange = pl.onkeyup= function (){
+    	var text = pl.value;
+    	var tips = "请输入数字或字母";
+    	
+    	if(!/^[\d|\w]+$/.test(text)){
+    		if(text == ""){
+    			return;
+    		}
+    		alertTips(al,tips);
+    	}else{
+    		clearAlert(al);
+    	}
+	}
+
+	//初始化
+   	function initialTip(elem,tip){
+   		if(elem.value == ""){
+   			elem.value = tip;
+   			elem.style.color = "#ccc";
+   			clearAlert(elem);
+   		}
+   	}
+
+   	function clearTip(elem,tip){
+   		if(elem.value == tip){
+   			elem.value = "";
+   			elem.style.color = "#000";
+   		}
+   	}
+
+   	function alertTips(elem,tip){
+   		elem.innerHTML = tip;
+   	}
+
+   	function clearAlert(elem){
+   		if(elem.innerHTML != ""){
+   			elem.innerHTML = "";
+   		}
+   	}
+
+</script>
+</body>
+</html>
