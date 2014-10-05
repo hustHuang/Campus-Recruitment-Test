@@ -105,16 +105,58 @@ function parseParam(url){
 var url = "www.a.com?a=1&b=2&c=3";
 console.log(parseParam(url));
 
-/*--给页面元素增加遮罩--*/
+
+/*--获取网页元素的绝对位置--*/
+function getPosition(element){
+	var results = {};
+	results.elemLeft = (function(elem){
+		var actualLeft = elem.offsetLeft,
+		 	elemParent = elem.offsetParent;
+		while(elemParent != null){
+			actualLeft += elemParent.offsetLeft;
+			elemParent = elemParent.offsetParent;
+		}
+		return actualLeft;
+	})(element);
+
+	results.elemTop = (function(elem){
+		var actualTop = elem.offsetTop,
+		    elemParent =  elem.offsetParent;
+		while(elemParent != null){
+		    actualTop += elemParent.offsetTop;
+		    elemParent = elemParent.offsetParent;
+		 }
+		 return actualTop;
+	})(element);
+	return results;
+}
+
+//简化版
+function getPosition(elem){
+	var actualLeft = elem.offsetLeft,
+		 actualTop = elem.offsetTop,
+	 	elemParent = elem.offsetParent;
+	while(elemParent != null){
+		actualLeft += elemParent.offsetLeft;
+		 actualTop += elemParent.offsetTop;
+		elemParent = elemParent.offsetParent;
+	}
+	return {
+		left:actualLeft,
+		top:actualTop
+	};
+}
+
+/*--给页面元素增加遮罩,阿里笔试题--*/
 function addMask(elem,opacity){
 	var position = {
-		 left:elem.offsetLeft,
-		 top:elem.offsetTop,
+		 left:getPosition(elem).elemLeft,
+		 top:getPosition(elem).elemTop,
 		 width:elem.offsetWidth,
 		 height:elem.offsetHeight,
 		 zIndex:elem.style.zIndex 
 	};
-	var mask = document.creatElement("div");
+	var mask = document.createElement("div");
 	mask.style.position = "absolute";
 	mask.style.left = position.left + "px";
 	mask.style.top = position.top + "px";
@@ -123,13 +165,60 @@ function addMask(elem,opacity){
 	mask.style.zIndex = position.zIndex + 5;
 	mask.style.opacity= opacity;
 	mask.style.filter = "alpha(opacity=" + 100 * opacity + ")";
+	mask.style.backgroundColor = "#000";
 	mask.onclick = function (){
 		return false;
 	};
 	document.body.appendChild(mask);
 }
 
-/*---是否互质 ---*/
+var elem = document.getElementById("site");
+addMask(elem,1);
+
+
+/*--获取网页元素的相对位置---*/
+
+function getElementViewLeft(element){
+　　　　var actualLeft = element.offsetLeft,
+			 actualTop = element.offsetTop,
+			   current = element.offsetParent;
+　　　　while (current !== null){
+　　　　　　actualLeft += current.offsetLeft;
+			 actualTop += current.offsetTop;
+　　　　　　current = current.offsetParent;
+　　　　}
+　　　　if (document.compatMode == "BackCompat"){//IE6
+　　　　　　var elementScrollLeft = document.body.scrollLeft,
+				 elementScrollTop = document.body.scrollTop;
+　　　　} else {
+　　　　　　var elementScrollLeft = document.documentElement.scrollLeft, 
+				 elementScrollTop = document.documentElement.scrollTop; 
+　　　　}
+　　　　return {
+			left:actualLeft-elementScrollLeft,
+			top:actualTop-elementScrollTop
+		}
+}
+
+//仅仅获取顶部的相对位置
+function getElementViewTop(element){
+　　　　var actualTop = element.offsetTop;
+　　　　var current = element.offsetParent;
+　　　　while (current !== null){
+　　　　　　actualTop += current. offsetTop;
+　　　　　　current = current.offsetParent;
+　　　　}
+　　　　 if (document.compatMode == "BackCompat"){
+　　　　　　var elementScrollTop=document.body.scrollTop;
+　　　　} else {
+　　　　　　var elementScrollTop=document.documentElement.scrollTop; 
+　　　　}
+　　　　return actualTop-elementScrollTop;
+}
+
+
+
+/*---判断两数字是否互质 ，阿里笔试题---*/
 function isPrime(){
 	if(a <= 0 || b <= 0 ){
 		return false;
@@ -148,7 +237,7 @@ function isPrime(){
 	}
 }
 
-/*--计算页面上停留时间--*/
+	/*--计算页面上停留时间--*/
 	function calcTime (){
 		var elems = document.getElementsByTagName("div");
 		for(var i = 0 ,len = elems.length; i < len ;i++ ){
@@ -269,50 +358,56 @@ function myArrSort(){
 	return tags;
 }
 
-
 /*--实现div可拖拽--*/
 function dragElem(id){
 	var elem = document.getElementById(id);
-	var _isMouseDown = false;
+	var _isMouseDown = false, preMousePos, prePos;
 
 	elem.onmousedown = function (e){
-		var _isMouseDown = true,
+			_isMouseDown = true,
 		 	eve = e || window.event,
-			mousePos = {
+			preMousePos = {
 				left:eve.pageX,
 				top:eve.pageY
 			},
-			pos = {
-				left:this.style.left,
-				top:this.style.top
+			prePos = {
+				left:parseInt(this.style.left || 0),
+				top:parseInt(this.style.top || 0)
 			};
-		elem.setAttribute("mousePos",pos);
-		elem.setAttribute("pos",pos);
-	}
+			console.log(prePos);
+			if(elem.addEventListener){
+				elem.addEventListener("mousemove",mousemoveHandler,false);
+			}else if(elem.attachEvent){
+				elem.attachEvent("onmousemove",mousemoveHandler);
+			}
+	};
 
-	elem.onmousemove = function (e){
+	var mousemoveHandler = function (e){
 		if(_isMouseDown){
 			var eve = e || window.event;
 			var mousePos = {
 				left:eve.pageX,
 				top:eve.pageY
 			};
-			var prePos = this.getAttribute("pos");
-			var preMousePos = this.getAttribute("mousePos");
-			elem.style = {
-				position:"absolute",
-				left:prePos.left + (mousePos.left - preMousePos.left) + "px",
-				top:prePos.top + (mousePos.top - preMousePos.top) + "px"
-			};
+			console.log(mousePos);
+			elem.style.left = prePos.left + (mousePos.left - preMousePos.left) + "px";
+			elem.style.top = prePos.top + (mousePos.top - preMousePos.top) + "px";
 		}
 
-	}
+	};
 
 	elem.onmouseup = function (e){
 		_isMouseDown = false;
-	}
-
+		prePos = null;
+		preMousePos = null;
+		if(elem.removeEventListener){
+			elem.removeEventListener("mousemove",mousemoveHandler,false);
+		}else if(elem.detachEvent){
+			elem.detachEvent("onmousemove",mousemoveHandler);
+		}
+	};
 }
+
 
 
 /*--获取某一个 DOM 元素的所有父亲节点--*/
@@ -358,7 +453,6 @@ linkAlert();
 
 
 /*--数组，保存小写英文字符串，把它按照除了第一个字母外的字符的字典顺序排序--*/
-
 function sortBySubChar(arr){
 	arr.sort(function(a,b){
 		var sa = a.length,
@@ -393,6 +487,8 @@ arr.sort(sortBySubLetter);
 
 /*--PHP的类shuffle功能--*/
 function shuffle(){
+
+	//有问题的解法
 	Array.prototype.shuffle = function (){
 		var i , j ,temp ,len = this.length;
 		for(i = 0; i < len; i++){
@@ -403,8 +499,15 @@ function shuffle(){
 		};
 		return this;
 	};
+    
+    //网上解法
+    if (!Array.prototype.shuffle) { 
+		Array.prototype.shuffle = function() {        
+			for(var j, temp, i = this.length; i; j = parseInt(Math.random() * i), temp = this[--i], this[i] = this[j], this[j] = temp);
+		   	return this;
+		};
+	}
 }
-
 
 
 /*--最长公共子串问题,基本方法--*/
@@ -456,7 +559,7 @@ var f = new foo();
 f.bar();
 
 /*--setTimeout 模拟 setInterval --*/
-function FakeSetInterval (func,interval){
+function fakeSetInterval (func,interval){
   setTimeout(function (){
  	func();
  	setTimeout(arguments.callee,interval); 			
@@ -489,7 +592,6 @@ console.log(GetBytes("你好,as"));
 
 
 /*--数组去重复--*/
-
 Array.prototype.unique = function (){
 	var arr = this,len = arr.length, newArr = [];
 	for(var i = 0; i < len; i++ ){
@@ -512,9 +614,7 @@ function IsString(str){
 IsString("aStr");
 
 
-
 /*--如何检测一个变量是一个Array类型--*/
-
 function isArray(object){
 	return object instanceof Array;
 }
@@ -558,7 +658,7 @@ function getYearTimeTips(){
 		if(days == 0 && hours == 0 && minutes == 0 && seconds == 0){
 			clearInterval(timer);
 		}
-		
+
 	},1000);
 
 }
@@ -602,12 +702,12 @@ function alertTagNames(){
 		var tag = tags[i];
 		console.log(tag);
 		if(tag.tagName != "BODY" && tag.tagName != "HTML"){
-		    if(document.addEventListener){ //Non IE
+		    if(document.addEventListener){ 	//Non IE
 		    	tag.addEventListener("click",function(e){
 		    		alert(this.tagName);
 		    		e.stopPropagation();  
 		    	},false);
-		    }else if(document.attachEvent){ //IE
+		    }else if(document.attachEvent){  //IE
 		    	tag.attachEvent("onclick",function(){
 		    		alert(this.tagName);
 		    		window.event.cancelBubble = true;  
@@ -620,8 +720,35 @@ function alertTagNames(){
 
 /*--异步加载js方案--*/
 
+function asyncLoadScript(scriptUrl){
+	var script = document.creatElement("script");
+	script.type = "text/javascript";
+	script.async = true;
+	script.src = scriptUrl;
 
-/*--请设计一套方案，用于确保页面中JS加载完全--*/
+	var s = document.getElementsByTagName("script")[0];
+	s.parentNode.insertBefore(script,s);
+}
+
+/*--加载完执行回调--*/
+function loadScript(url, callback){ 
+	var script = document.createElement("script") 
+		script.type = "text/javascript"; 
+	if (script.readyState){ //IE 
+		script.onreadystatechange = function(){ 
+			if (script.readyState == "loaded" || script.readyState == "complete"){ 
+				script.onreadystatechange = null; 
+				callback(); 
+			} 
+		}; 
+	} else { //Others: Firefox, Safari, Chrome, and Opera 
+		script.onload = function(){ 
+			callback(); 
+		}; 
+	} 
+	script.src = url; 
+	document.body.appendChild(script);
+} 
 
 
 /*--字符串翻转--*/
@@ -641,11 +768,6 @@ function reverseStr(){
 		return this.split('').reverse().join('');
 	}
 }
-
-
-/*--获取非行间样式--*/
-
-
 
 /*--随机数组可能包含数组（数组元素可能为数组），返回该数组中所有非重复元素，
 例如：数组[2,3,[4,6,[3,8]],12,10]，返回为：[2,3,4,6,8,12,10]。--*/
@@ -708,4 +830,524 @@ function getIndex(arr,elem){
 getIndex([1,2,4,5,6,7],3);
 getIndex([1,2,3,4,5,6,7],3);
 
-/*--倒数计时程序--*/
+
+/*--用正则表达式, 把 html 中的<script></script>标签过滤掉--*/
+function filterScript(htmlStr){
+	var regexp = new RegExp('\\<\\/?script\\>','g');
+	console.log(regexp);
+	htmlStr = htmlStr.replace(regexp,function(str){
+		console.log(str);
+		return '';
+	});
+	return htmlStr;
+}
+var testHtmlStr = "<div></div><script>alert('OK');</script><p></p><script></script>";
+console.log(filterScript(testHtmlStr));
+
+/*--获取非行间样式--*/
+function getStyle(elem){
+	var style;
+	if(elem.currentStyle){ //IE、Opera
+		style = elem.currentStyle;
+	}else { //非IE，FireFox、Chrome、Safari
+		style = getComputedStyle(elem,false);
+	}
+	for(var selector in style){
+		console.log(selector +":"+ style[selector]);
+	}
+}
+/*注：行间样式可以直接通过elem.style.**获取到*/
+var elem = document.getElementById("hao123-bodyct");
+getStyle(elem);
+
+
+
+/*--判断一个字符串中出现次数最多的字符，统计这个次数--*/
+function getMaxCount(str){
+	var strObj = {},maxCount = 0 ,maxStr;
+	for(var i =0 , len = str.length; i < len ; i++){
+		var charter = str.charAt(i);
+		//console.log(charter);
+		if(strObj[charter] > 0){
+		   strObj[charter]++;
+		}else{
+		   strObj[charter] = 1;
+		}
+	}
+	for(var str in strObj){
+		if(strObj[str] > maxCount ){
+			maxCount = strObj[str];
+			maxStr = str;
+		}
+	}
+	console.log("maxStr : " + maxStr);
+	console.log("maxCount : " + maxCount);
+}
+
+getMaxCount("qweritopyiamskdjiojproeasjdfjsdlk");
+
+/*--鼠标单击Button1后将Button1移动到Button2的后面--*/
+<input type="button" id="button1" value="button1" />
+<input type="button" id="button2" value="button2" />
+
+function switchButton(){
+	var btn1 = document.getElementById("button1"),
+		btn2 = document.getElementById("button2"),
+		btn3 = btn2.cloneNode();
+		document.body.removeChild(btn2);
+		document.body.insertBefore(btn3,btn1);
+}
+
+
+/*--匹配邮箱的正则表达式--*/
+function isEmail(str){
+	var regexp = new RegExp("[a-zA-Z_0-9]+@[a-zA-Z_0-9]+\.[a-z]+(\.[a-z]{2})*");
+	return regexp.test(str);
+}
+
+
+/*--匹配数字字符串--*/
+function isNumber(str){
+	var regexp_1 = new RegExp("^0\\.\\d+$");
+	var regexp_2 = new RegExp("^[1-9]\\d*(\\.\\d+)?$");
+	return regexp_1.test(str) || regexp_2.test(str);
+}
+var str1 = "2150";
+console.log(isNumber(str1));
+var str2 = "123.56";
+console.log(isNumber(str2));
+var str3 = "0.00123";
+console.log(isNumber(str3));
+var str4 = "012989";
+console.log(isNumber(str4));
+
+
+/*--下面代码的输出结果--*/
+//(1).对象的引用
+var obj={};
+var ref=obj;
+obj.name = "objectA";
+obj = ["one","two","three"];
+alert(ref.name);	//objectA
+alert(ref.length);	//undefined
+
+//(2).闭包相关
+var outter=[];
+function clouseTest(){
+  var array=["one","two","three","four"];
+  for(var i=0;i<array.length;i++){
+    var x={};
+    x.no=i;
+    x.text=array;
+    x.invoke=function(){
+      alert(i);
+    }
+    outter.push(x);
+  }
+}
+//调用这个函数
+clouseTest();
+outter[0].invoke(); //4
+outter[3].invoke(); //4
+
+
+/*--对称数定义为121,8998，88等，找出1到10000之间的所有对称数--*/
+function getSymmetryNumber(number){
+
+	var result = [];
+	if(number < 0 || isNaN(number)){
+		return result;
+	}
+	for(var i = 1 ; i <= number ; i++){
+		var numArr = Number.prototype.toString.call(i);
+		var len = numArr.length,leftArr,rightArr;
+		if(len%2 == 0){
+			leftArr = numArr.slice(0,len/2);
+			rightArr = numArr.slice(len/2);
+		}else{
+			leftArr = numArr.slice(0,(len-1)/2);
+			rightArr = numArr.slice((len+1)/2);
+		}
+		leftArr = leftArr.split("").reverse().join("");
+		if(leftArr == rightArr){
+			result.push(i);
+		}
+	}
+	console.log(result);
+	return result;
+}
+
+/*--动态打印时间，格式为yyyy-MM-dd hh:mm:ss--*/
+setInterval(function(){
+   var time  = new Date(),
+	   year = time.getFullYear(),
+	   month = format(time.getMonth() + 1),//月份这里有大坑，实际月份要加1
+	   day = format(time.getDate()),
+	   hour = format(time.getHours()),
+	   minute = format(time.getMinutes()),
+	   second = format(time.getSeconds());
+	console.log(year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second);
+},1000);
+
+
+function format(item){
+   if(item < 10){
+   	  item = "0" + item;
+   }
+   return item;
+}
+
+/*--查找一个字符串中第一个只出现一次的字符--*/
+
+//常规方法
+function findFisrtAloneStr(str){
+	var strObj = {};     
+	for(var i = 0 , len = str.length ; i < len ; i++){
+		var chr = str.charAt(i);
+		if(!strObj[chr]){
+			strObj[chr] = 1 ;
+		}else{
+			strObj[chr]++ ;
+		}
+	}
+
+	for(var index in strObj){
+	   if(strObj[index] == 1){
+	   		return index;
+	   }
+	}
+}
+
+//快捷方法,面试官给出的方法
+function findFisrtAloneStr(str){
+    for(var i = 0 , len = str.length ; i < len ; i++){
+		var chr = str.charAt(i);
+		var regexp = new RegExp(chr,"g");
+		var result = str.match(regexp);
+		if(result.length == 1){
+			return chr;
+		}
+	}
+}
+
+var str = "asdfgadfgqwert";
+console.log(findFisrtAloneStr(str));
+
+
+/*--快速排序算法的js实现--*/
+function quickSort(arr){
+	var len = arr.length;
+	if(len <= 1){
+		return arr;
+	}
+	var pivotIndex =  Math.floor(len/2);
+	var pivot = arr.splice(pivotIndex,1)[0];
+	var left = [] ,right = [];
+	for(var i = 0; i < len; i++){
+		if(arr[i] < pivot){
+			left.push(arr[i]);
+		}else{
+			right.push(arr[i]);
+		}f
+	}
+	return quickSort(left).concat([pivot],quickSort(right));
+}
+
+
+/*--写一个函数，实现对象继承--*/
+
+//1.对象拷贝继承
+function extend(Child , Parent){
+	var p = Parent.prototype;
+	var c = Child.prototype;
+	for(var pro in p){
+		c[pro] = p[pro];
+	}
+}
+
+//2.原型继承,利用了空类作为中介
+function extend(Child , Parent){
+	var F = function {};
+	f.prototype = Parent.prototype;
+	Child.prototype = new F();
+	Child.prototype.constructor = Child;
+}
+
+
+/*--锐捷笔试题，求输出--*/
+var arr = [1,2,3];
+var m = 0;
+for(var i = 0; i < arr.length -1; i++){
+	setTimeout(function(){
+		m += arr[i];
+		alert(m);
+	},1000*i);
+}
+alert(m);
+
+//分别输出 0,3,6
+
+
+/*--把字符串中单词的首字母都变为大写--*/
+function wordToUpperCase(str){
+	var strArr = str.split(" ");
+	for(var i = 0,len = strArr.length ; i < len; i++){	
+		strArr[i] = strArr[i].substring(0,1).toUpperCase() + strArr[i].substring(1);
+	}
+	return strArr.join(" ");
+}
+
+var str = "i am a good boy";
+console.log(wordToUpperCase(str));
+
+
+
+/*--海豚浏览器，求输出结果--*/
+var name = "global";
+function outer(){
+     var name = "inner";
+     function inner(){
+         document.write(this.name);
+     }
+     inner();
+}
+outer(); //global
+
+
+
+/*--把颜色十六进制值换成数字表示 如FFF --> 255,255,255--*/
+function toRGB(str){
+	var result = ""; 
+    for(var i = 0; i < 3 ; i++){
+        var color = str.substr(2*i,2);
+        var num = toNum(color);
+        result += num + ",";
+    }
+    result = result.substring(0,result.length-1);
+    return result;
+}
+
+function toNum(str){
+    var _chars = "0123456789abcdef";
+    var a = str.charAt(0);
+    var b = str.charAt(1);
+    return 16 * _chars.indexOf(a) + _chars.indexOf(b);
+}
+console.log(toRGB("f432ea"));
+
+
+/*--不改变原数组，实现数组分组--*/
+
+//arr [1,2,3,4,5,6,7,8] n 4 -->[[1,2],[3,4],[5,6],[7,8]] 
+
+function divideArr(arr,n){
+	var len = arr.length , i = 0;
+	var result = [];
+	while(i < len){
+        var elem = arr.slice(i,i+n);
+        result.push(elem);
+        i+=n;
+	}
+	return result;
+}
+
+var arr = [1,2,3,4,5,6,7,8];
+divideArr(arr,4);
+console.log(arr);
+
+
+
+/*--利用原型克隆对象--*/
+function clone(o){
+	var F = function (){};
+	F.prototype = o;
+	return new F();
+
+}
+
+
+/*--实现一个监听load事件的借口，多次绑定保证顺序执行，先绑定先执行，load已触发，调用时直接执行--*/
+function load(callback){
+    if(document.readyState == "complete"){//判断页面是否加载完全
+    	callback();
+    	return;
+    }
+
+	if(document.body.addEventListener){
+		document.body.addEventListener("load",callback,false);
+	}else{
+		document.body.attachEvent("onload",callback);
+	}
+}
+
+
+/*--页面加载完成绑定某事件，模拟onload--*/
+function onPageLoad(callback){
+	if(document.readyState == "complete"){
+        callback();
+	}else{
+		document.onreadystatechange = function () {
+			if(document.readyState == "complete"){
+        		callback();
+			}
+		}
+	}
+}
+
+
+/*--请设计一套方案，用于确保页面中JS加载完全--*/
+function isScriptLoaded(script){
+   		if(script.readyState){
+   			script.onreadystatechange = function (){
+   			  if (script.readyState ==  "loaded" || script.readyState == "complete"){ 
+   			      script.onreadystatechange = null;
+   			      return true;
+   			  }
+			}
+   		}else{
+   			script.onload = function (){
+   				return true;
+   			}
+   		}
+   		return false;
+}
+
+/*--判断js文件是否加载完成 --*/
+function loadScript(url,callback){ 
+   var script = document.createElement("script") 
+   script.type = "text/javascript"; 
+   if (script.readyState){//IE 
+      script.onreadystatechange = function(){ 
+         if (script.readyState ==  "loaded" || script.readyState == "complete"){ 
+            script.onreadystatechange = null;
+            
+            callback(); 
+
+         } 
+      }; 
+
+   } else { //Others: Firefox, Safari, Chrome, and Opera 
+      script.onload = function(){ 
+          callback(); 
+      }; 
+   } 
+   script.src = url; 
+   document.body.appendChild(script);
+
+}
+
+//JQuery：
+
+$.getScript("xxx.js", function(){
+   alert("xxx.js加载完毕")
+});
+
+
+
+/*--按数组元素出现的次数依次升序输出元素--*/
+
+//方法一：先统计次数，构建键值对数组，按值来排序
+function sortByCount(arr){
+    var obj = {},len = arr.length;
+    //统计次数，构建hash表
+    for(var i = 0 ; i < len; i ++){
+    	if(obj[arr[i]]){
+    		obj[arr[i]] += 1;
+    	}else{
+    		obj[arr[i]] = 1;
+    	}
+    }
+
+    //转换成数组存储
+    var result = [];
+    for(var j in obj){
+         var elem = {};
+         elem.key = j;
+         elem.val = obj[j];
+         result.push(elem);
+    }
+
+    //按次数排序
+    result.sort(function(a,b){
+    	return a.val - b.val;
+    });
+
+    //输出
+    for(var k  = 0 ,num = result.length; k < num; k++){
+    	console.log(result.key);
+    }
+
+}
+
+//方法二：利用数组下标
+function sortByCount(arr){
+	var count = {},
+		rcount = [],
+		result = [],
+		len = arr.length;
+	//统计次数
+	for(var i = 0; i < len ; i++){
+		if(count[arr[i]]){
+			count[arr[i]] += 1;
+		}else{
+			count[arr[i]] = 1;
+		}
+	}
+	
+	//把次数转换成下标
+	for(var e in count){
+		if(rcount[count[e]]){
+			rcount[count[e]].push(e);
+		}else{
+			rcount[count[e]] = [e];
+		}
+	}
+	
+	//依下标序把数组连接起来
+	for(var j = 0 ,rlen = rcount.length; j < rlen; j ++){
+		if (rcount[j]) {
+			result = result.concat(rcount[j]);
+		}
+	}
+
+	//输出
+	for(var k = 0, klen = result.length; k < klen; k++){
+		console.log(result[k]);
+	}
+}
+
+arr = [1,2,3,4,5,1,1,1,2,3,4,4,4,5];
+sortByCount(arr);
+
+
+/*--实现原生的ajax方法--*/
+function ajax (url, method, callback ,async){
+    var xhr ;
+    if(window.XMLHttpRequest){
+    	xhr = new XMLHttpRequest();
+    }else{
+    	xhr = new activeXObject("Microsoft.XMLHTTP");
+    }
+    xhr.onreadystatechange = function (){
+    	if(xhr.readyState == 4){
+    		if(xhr.status == 404){
+    			callback();
+    		}
+    	}
+    }
+    xhr.open(url,method,async);
+    xhr.send();
+}
+
+
+//求输出
+var name = "window";
+var f = function {
+	alert(this.name);
+}
+
+var obj = {
+	name:"huang"
+}
+f();
+f.call(obj);
