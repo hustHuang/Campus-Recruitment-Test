@@ -614,20 +614,25 @@ function IsString(str){
 IsString("aStr");
 
 
-/*--如何检测一个变量是一个Array类型--*/
+/*--如何检测一个变量是数组Array类型--*/
+
+//1.
 function isArray(object){
 	return object instanceof Array;
 }
 
+//2.
 function isArray(object){
     return object && typeof object==='object' &&
             Array == object.constructor;
 }
 
+//3.
 function isArray(object) {
     return Object.prototype.toString.call(object) === ‘[object Array]‘;
 }
 
+//4.
 function isArray(object){
     return  object && typeof object==='object' &&    
             typeof object.length==='number' &&  
@@ -1340,7 +1345,7 @@ function ajax (url, method, callback ,async){
 }
 
 
-//求输出
+/*下面的代码求输出:this的指向问题，总是指向执行时所在的上下文。*/
 var name = "window";
 var f = function {
 	alert(this.name);
@@ -1349,5 +1354,247 @@ var f = function {
 var obj = {
 	name:"huang"
 }
-f();
-f.call(obj);
+f(); //window
+f.call(obj); //huang
+
+/*下面的代码求输出：数据类型转换问题*/
+//1.
+var foo = "11" + 2 - "1";
+console.log(foo); //111
+console.log(typeof foo);//Number
+
+//2.
+var foo = "11"+2+"1";
+console.log(foo);//1121
+console.log(typeof foo);//String
+
+
+/* 看代码给答案：考察引用数据类型的细节 */
+var a = new Object();
+a.value = 1;
+b = a;
+b.value = 2;
+alert(a.value);  //2
+
+
+
+/*--已知有字符串foo=”get-element-by-id”,写一个function将其转化成驼峰表示法”getElementById”--*/
+function changeIdToCammercase(id){
+	var id = id || "";
+	var idArray = id.split("-");
+	var newId = "";
+	for(var i = 0 , len = idArray.length; i < len; i++){
+		var item = idArray[i];
+		var newItem = item.charAt(0).toUpperCase() + item.substring(1);
+		newId += newItem;
+	}
+	return newId;
+}
+console.log(changeIdToCammercase("get-element-by-id"));
+
+
+/*输出今天的日期，以YYYY-MM-DD的方式，比如今天输出2014-09-28*/
+function generateDate(){
+	var time = new Date(),
+	year = time.getFullYear(),
+	month = time.getMonth() + 1, //月份从0开始，注意！！
+	date = time.getDate();
+	month = month < 10 ? "0" + month : month;
+	date = date < 10 ? "0" + date : date;
+
+	var formatedTime = year + "-" + month + "-" + date;
+ 	console.log(formatedTime);
+}
+
+
+
+/*
+//将字符串”<tr><td>{$id}</td><td>{$name}</td></tr>”中的{$id}替换成10，{$name}替换成Tony(使用正则表达式)
+*/
+
+function render(template,dataObj){
+	for(var key in dataObj){
+		var regexp = new RegExp("{\\$("+key+")}");
+    	//console.log(regexp);
+		template = template.replace(regexp,function(str,e){
+			return dataObj[e];
+		});
+	}
+	return template;
+}
+
+var template = "<tr><td>{$id}</td><td>{$name}</td></tr>";
+var obj = {"id": 10 , "name": "Tony"};
+var htm = render(template,obj);
+console.log(htm);
+
+
+/*
+为了保证页面输出安全，我们经常需要对一些特殊的字符进行转义，
+请写一个函数escapeHtml，将<, >, &, “进行转义
+*/
+
+function escapeHtml(str){
+	var escapeStr = str.replace(/\&/g,"&amp")
+					   .replace(/\</g,"&lt")
+					   .replace(/\>/g,"&gt")
+					   .replace(/\"/g,"&quot");
+
+	console.log(escapeStr);
+	return escapeStr;
+}
+
+//另外的解法
+function escapeHtml(str) {
+  var escapeStr = str.replace(/[<>"&]/g, function(match) {
+      switch (match) {
+         case "<":
+            return "&lt;";
+         case ">":
+            return "&gt;";
+         case "&":
+            return "&amp;";
+         case "\"":
+            return "&quot;";
+       }
+   });
+
+  console.log(escapeStr);
+  return  escapeStr;
+ }
+ 
+ escapeHtml('<html>hello world! "jack" &sss <html>');
+
+
+ /*用js实现随机选取10–100之间的10个数字，存入一个数组，并排序。*/
+
+ function getRandNumber(){
+ 	var arr = [],
+		cnt = 10;
+ 	while(cnt--){
+ 		var num = 10 + parseInt((100-10) * Math.random(0,1));
+ 		arr.push(num);
+ 	}
+ 	arr.sort();
+ 	return arr;
+ }
+ getRandNumber();
+
+
+/* 把两个数组合并，并删除第二个元素。*/
+
+function combine(arr1 , arr2){
+	var arr = arr1.concat(arr2);
+		arr.splice(1,1);
+		return arr;
+}
+
+combine([1,3,2,3,4] , [5,6,7]);
+
+
+/*-- 邮箱的正则匹配--*/
+
+var regMail = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((.[a-zA-Z0-9_-]{2,3}){1,2})$/;
+
+
+
+/*--循环中闭包的处理--*/
+
+for(var i = 1; i <= 3; i++){
+	setTimeout(function(){
+		console.log(i);
+	},0);
+}
+//输出 4 4 4
+//若要输出 1 2 3 该如何处理
+//1.改为立即执行函数
+for(var i = 1; i <= 3; i++){
+	setTimeout((function(s){
+		console.log(s);
+	})(i),0);
+}
+
+//2.作为参数传入
+for(var i = 1; i <= 3; i++){
+	(function(s){
+		setTimeout(function(){
+			console.log(s);
+		},0);
+	})(i);
+}
+
+
+/*--写一个function，清除字符串前后的空格,兼容所有浏览器--*/
+
+String.prototype.trim = function(){
+	return this.replace(/^\s+/,"").replace(/\s+$/,"");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
