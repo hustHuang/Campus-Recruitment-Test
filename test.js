@@ -1531,70 +1531,133 @@ String.prototype.trim = function(){
 }
 
 
+/*--
+如果一对兔子每月生一对兔子；一对新生兔，从第二个月起就开始生兔子；
+假定每对兔子都是一雌一雄，试问一对兔子，第n个月能繁殖成多少对兔子？（使用callee完成）
+--*/
+
+function addRabbit(n){
+	if(n == 1){
+		return 2;
+	}
+	var num = (n-1) * 2 ;
+	return num + arguments.callee(n-1);
+}
+
+/*--
+
+实现一个函数clone，可以对JavaScript中的5种主要的数据类型
+（包括Number、String、Object、Array、Boolean）进行值复制
+
+--*/
+
+function clone(source){
+	var target;
+	if(typeof source  !== "object"){
+		return source;
+	}
+
+	if(source.constructor == Array){
+		target = [];
+	}else{ 
+		target = {};
+	}
+
+    for(var key in source){
+ 		if(typeof source[key] == "object"){
+ 			target[key] = clone(source[key]);
+ 		}else{
+ 			target[key] = source[key];
+ 		}
+    }
+    return target;
+}
+//测试用例
+console.log(clone("str"));
+console.log(clone([1,2,3,4,5]));
+console.log(clone({"name":"lory"}));
+
+
+/*如何消除一个数组里面重复的元素*/
+
+function uniqueList(arr){
+	var len = arr.length, cnt = {} ,result = [];
+	for(var i = 0; i < len ; i++){
+		if(cnt[arr[i]]){
+			cnt[arr[i]] ++;
+		}else {
+			cnt[arr[i]] = 1;
+		}
+	}
+
+	for(var k in cnt){
+		result.push(k);
+	}
+	return result;
+}
+
+
+/*--给函数增加bind方法，使其可以指定执行的上下文--*/
+Function.prototype.bind = function(context){
+	var self = this;
+	return function (){
+		self.apply(context,arguments);
+	}
+}
+
+/*--模板引擎的实现问题--*/
+
+//define
+
+(function(window){
+	function fn(str){
+		this.str = str;
+	}
+
+	fn.prototype.format = function (){
+		var arg = arguments;
+		return this.str.replace(/\{(\d+)\}/gi,function(a,b){
+			return arg[b] || "";
+		});
+	};
+
+	window.fn = fn;
+
+})(window);
+
+
+//use
+(function(){
+     var t = new fn('<p><a href="{0}">{1}</a><span>{2}</span></p>');
+     console.log(t.format('http://www.alibaba.com','Alibaba','Welcome'));
+})();
+
 
 
+/*--
+原生JS的window.onload与Jquery的$(document).ready(function(){})有什么不同？
+如何用原生JS实现Jq的ready方法
+--*/
+//window.onload()方法是必须等到页面内包括图片的所有元素加载完毕后才能执行。
+//$(document).ready()是DOM结构绘制完毕后就执行，不必等到加载完毕
 
+function domReady(callback){
+	if(document.addEventListener){
+		document.addEventListener("DOMContentLoaded",function(){
+			document.removeEventListener("DOMContentLoaded",arguments.callee,false);
+			callback();
+		},false);
+	}else if(document.attachEvent){
+		document.attachEvent("onreadystatechange",function(){
+			if(document.readyState == "complete"){
+			   document.detachEvent("onreadystatechange",arguments.callee);
+			   callback();
+			}
+		});
+	}
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
 
 
